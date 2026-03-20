@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "CTU Timetable Exporter",
+  "version": "1.0.0",
+  "description": "Công cụ xuất thời khóa biểu từ hệ thống ĐKMH CTU",
+  "author": "Huaniverse (Nguyen Le Huu Huan)",
+  "homepage_url": "https://huaniverse.netlify.app/tools/tkb",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://dkmhfe.ctu.edu.vn/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://dkmhfe.ctu.edu.vn/*"],
+      "js": ["xlsx.mini.min.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
