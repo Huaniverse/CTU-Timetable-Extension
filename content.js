@@ -435,7 +435,7 @@
         <div class="c5-logo" id="c5-logo-link" title="Visit Huaniverse">
           <div class="c5-logo-icon">H</div>
           <div class="c5-logo-text">
-            <span class="c5-logo-name">CTU Exporter</span>
+            <span class="c5-logo-name">CTU Exporter <span style="font-size: 8.5px !important; opacity: 0.5 !important; font-weight: 400 !important; margin-left: 2px !important;">v${chrome.runtime.getManifest().version}</span></span>
             <span class="c5-logo-by">by <a id="c5-author-link" href="${AUTHOR_URL}" target="_blank" rel="noopener">Huaniverse</a></span>
           </div>
         </div>
@@ -483,6 +483,7 @@
           <div class="c5-state c5-h" id="c5-result">
             <span class="c5-chip c5-chip-ok" id="c5-rbadge">✓</span>
             <button class="c5-btn c5-btn-green" id="c5-dl">⬇ Tải tệp Excel</button>
+            <button class="c5-btn c5-btn-sky" id="c5-tkb">🗓️ Xếp TKB</button>
             <button class="c5-btn c5-btn-ghost" id="c5-tgl-add">＋ Thêm môn</button>
             <button class="c5-btn c5-btn-ghost" id="c5-tgl-del">－ Xóa môn</button>
             <button class="c5-btn c5-btn-ghost" id="c5-reset">↺ Làm lại</button>
@@ -525,9 +526,10 @@
   // STATE
   // ==========================================================================
 
-  let scrapedData = null;
-  let panelReady  = false;
-  let activeTray  = null;
+  let scrapedData  = null;
+  let panelReady   = false;
+  let activeTray   = null;
+  let isDownloaded = false;
 
   const SEL = {
     YEAR: '#rc_select_0', SEM: '#rc_select_1', CODE: '#rc_select_2',
@@ -694,6 +696,10 @@
 
     $('c5-go').addEventListener('click', handleStart);
     $('c5-dl').addEventListener('click', handleDownload);
+    $('c5-tkb').addEventListener('click', () => {
+      if (!isDownloaded) handleDownload();
+      window.open('https://huaniverse.netlify.app/tools/tkb', '_blank', 'noopener');
+    });
     $('c5-reset').addEventListener('click', handleReset);
     $('c5-retry').addEventListener('click', handleReset);
     $('c5-reload').addEventListener('click', () => location.reload());
@@ -793,7 +799,7 @@
   }
 
   function handleReset() {
-    scrapedData = null; panelReady = false; closeTray(); initPanel();
+    scrapedData = null; panelReady = false; isDownloaded = false; closeTray(); initPanel();
   }
 
   // ==========================================================================
@@ -896,6 +902,7 @@
 
       const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,-5);
       XLSX.writeFile(wb, `CTU_${scrapedData.year}_HK${scrapedData.sem}_${ts}.xlsx`);
+      isDownloaded = true;
     } catch(e) {
       alert('Lỗi xuất Excel: ' + e.message);
     }

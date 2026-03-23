@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CTU Timetable Exporter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Công cụ xuất thời khóa biểu từ hệ thống ĐKMH CTU",
   "author": "Huaniverse (Nguyen Le Huu Huan)",
   "homepage_url": "https://huaniverse.netlify.app/tools/tkb",
