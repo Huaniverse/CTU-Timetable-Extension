@@ -538,7 +538,7 @@
     NEXT: 'li.ant-pagination-next:not(.ant-pagination-disabled)',
     DOPT: '.ant-select-item-option'
   };
-  const W   = { INP: 500, SEARCH: 1600, PAGE: 1000, DROP: 300 };
+  const W   = { INP: 150, SEARCH: 1600, PAGE: 1000, DROP: 150 };
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const $    = id => document.getElementById(id);
   const STATES = ['checking','form','progress','result','error'];
@@ -695,6 +695,19 @@
     });
 
     $('c5-go').addEventListener('click', handleStart);
+    // Auto uppercase mã học phần
+    $('c5-codes').addEventListener('input', () => {
+      const el = $('c5-codes');
+      const start = el.selectionStart, end = el.selectionEnd;
+      el.value = el.value.toUpperCase();
+      el.setSelectionRange(start, end);
+    });
+    $('c5-add-inp').addEventListener('input', () => {
+      const el = $('c5-add-inp');
+      const start = el.selectionStart, end = el.selectionEnd;
+      el.value = el.value.toUpperCase();
+      el.setSelectionRange(start, end);
+    });
     $('c5-dl').addEventListener('click', handleDownload);
     $('c5-tkb').addEventListener('click', () => {
       if (!isDownloaded) handleDownload();
@@ -953,22 +966,74 @@
 
   async function fillYearSem(year, sem) {
     try {
-      const yw = document.querySelector(SEL.YEAR);
-      if (yw) { yw.click(); await wait(W.DROP); }
-      await pickDrop(year); await wait(W.INP);
-
-      const sw = document.querySelector(SEL.SEM);
-      if (sw) { sw.click(); await wait(W.DROP); }
-      await pickDrop(sem); await wait(W.INP);
+      console.log('[CTU5] Đang nhập Năm học:', year);
+      await typeInto(SEL.YEAR, year);
+      await pressKey(SEL.YEAR, 'Enter');
+      await wait(50);
+      await pressKey(SEL.YEAR, 'Tab');
+      
+      await wait(W.INP);
+      
+      console.log('[CTU5] Đang nhập Học kỳ:', sem);
+      await typeInto(SEL.SEM, sem);
+      await pressKey(SEL.SEM, 'Enter');
+      await wait(50);
+      await pressKey(SEL.SEM, 'Tab');
+      
+      await wait(W.INP);
       return true;
-    } catch(e) { return false; }
+    } catch(e) { console.error('[CTU5] Lỗi fillYearSem:', e); return false; }
+  }
+
+  async function pressKey(sel, key) {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    const keyCode = key === 'Enter' ? 13 : key === 'Tab' ? 9 : 0;
+    for (const type of ['keydown', 'keypress', 'keyup']) {
+      el.dispatchEvent(new KeyboardEvent(type, {
+        bubbles: true, cancelable: true,
+        key, code: key, keyCode, which: keyCode
+      }));
+      await wait(30);
+    }
+    await wait(W.DROP);
   }
 
   async function pickDrop(val) {
     await wait(W.DROP);
-    for (const o of document.querySelectorAll(SEL.DOPT)) {
-      const t = o.textContent.trim();
-      if (t === val || t.includes(val)) { o.click(); await wait(W.DROP); return true; }
+    
+    // Tìm các dropdown đang hiển thị (không bị ẩn bởi CSS)
+    const dropdowns = Array.from(document.querySelectorAll('.ant-select-dropdown'))
+      .filter(d => {
+        const style = window.getComputedStyle(d);
+        return style.display !== 'none' && style.visibility !== 'hidden' && !d.classList.contains('ant-select-dropdown-hidden');
+      });
+    
+    // Phạm vi tìm kiếm: dropdown mới nhất hoặc toàn bộ document nếu không thấy dropdown nào visible
+    const scope = dropdowns.length > 0 ? dropdowns[dropdowns.length - 1] : document;
+    const options = scope.querySelectorAll(SEL.DOPT);
+    
+    if (options.length === 0) {
+      console.warn('[CTU5] Không tìm thấy tùy chọn nào trong dropdown');
+      return false;
+    }
+
+    const target = String(val);
+    // 1. Ưu tiên khớp chính xác
+    for (const o of options) {
+      if (o.textContent.trim() === target) {
+        o.click();
+        await wait(W.DROP);
+        return true;
+      }
+    }
+    // 2. Khớp một phần
+    for (const o of options) {
+      if (o.textContent.trim().includes(target)) {
+        o.click();
+        await wait(W.DROP);
+        return true;
+      }
     }
     return false;
   }
@@ -976,15 +1041,24 @@
   async function typeInto(sel, val) {
     const inp = document.querySelector(sel);
     if (!inp) throw new Error('Không tìm thấy ô nhập liệu: ' + sel);
-    inp.focus(); inp.value = '';
-    ['input','change'].forEach(ev => inp.dispatchEvent(new Event(ev,{bubbles:true})));
-    await wait(100);
+
+    // Dùng React-compatible native setter để bypass controlled component
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype, 'value'
+    ).set;
+
+    inp.focus();
+    nativeSetter.call(inp, '');
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    await wait(50);
+
     for (const ch of val) {
-      inp.value += ch;
-      inp.dispatchEvent(new Event('input',{bubbles:true}));
-      await wait(50);
+      nativeSetter.call(inp, inp.value + ch);
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      await wait(20);
     }
-    ['change','blur'].forEach(ev => inp.dispatchEvent(new Event(ev,{bubbles:true})));
+
+    inp.dispatchEvent(new Event('change', { bubbles: true }));
     await wait(W.INP);
   }
 
