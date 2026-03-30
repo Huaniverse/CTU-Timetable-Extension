@@ -1,5 +1,5 @@
-// CTU Timetable Exporter v1 — by Huaniverse
-// https://huaniverse.netlify.app/
+// CTU Timetable Exporter — by Huaniverse
+// https://huaniverse.github.io/CTU-Timetable/
 
 (function () {
   'use strict';
@@ -7,7 +7,7 @@
   const TARGET_PATH = '/dangkyhocphan/sinhvien/danhmuchocphan';
   const PANEL_ID    = 'ctu5-panel';
   const STYLE_ID    = 'ctu5-style';
-  const AUTHOR_URL  = 'https://huaniverse.netlify.app/';
+  const AUTHOR_URL  = 'https://huaniverse.github.io/CTU-Timetable/';
 
   // ==========================================================================
   // SPA — URL polling (most reliable)
