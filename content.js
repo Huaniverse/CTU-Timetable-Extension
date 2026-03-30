@@ -785,7 +785,7 @@
   // ==========================================================================
 
   function parseCodes(raw) { return [...new Set(raw.split(',').map(c=>c.trim().toUpperCase()).filter(Boolean))]; }
-  function validCode(c)    { return /^[A-Z]{2}\d{3}E?$/.test(c); }
+  function validCode(c)    { return /^[A-Z]{2}\d{3}[A-Z]*$/.test(c); }
 
   async function handleStart() {
     const year = $('c5-year').value.trim();
