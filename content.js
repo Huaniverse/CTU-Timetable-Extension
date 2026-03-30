@@ -914,7 +914,28 @@
       }
 
       const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,-5);
-      XLSX.writeFile(wb, `CTU_${scrapedData.year}_HK${scrapedData.sem}_${ts}.xlsx`);
+      const fileName = `CTU_${scrapedData.year}_HK${scrapedData.sem}_${ts}.xlsx`;
+
+      const isEdge = /Edg/.test(navigator.userAgent);
+      const isChrome = /Chrome/.test(navigator.userAgent) && !isEdge;
+
+      if (isChrome) {
+        // Tối ưu cho Chrome: xuất file qua mã hóa Array và tạo Blob thủ công để tránh lỗi format
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } else {
+        // Edge và các trình duyệt khác
+        XLSX.writeFile(wb, fileName);
+      }
+
       isDownloaded = true;
     } catch(e) {
       alert('Lỗi xuất Excel: ' + e.message);
@@ -1076,15 +1097,16 @@
       await wait(W.SEARCH);
 
       const name = getCourseName();
-      let all = [];
+      let allRaw = [];
       while (true) {
         const raw = scrapeTable();
         if (!raw.length) break;
-        all.push(...toStructured(normalizeRows(raw), code, name));
+        allRaw.push(...raw);
         const nx = document.querySelector(SEL.NEXT);
         if (!nx) break;
         nx.click(); await wait(W.PAGE);
       }
+      let all = toStructured(normalizeRows(allRaw), code, name);
       return all.filter(d =>
         d['Thứ'] && d['Thứ']!=='N/A' && d['Thứ']!=='' &&
         d['Tiết học'] && d['Tiết học']!=='N/A' && d['Tiết học']!=='');
@@ -1106,7 +1128,12 @@
       .map(r => Array.from(r.querySelectorAll('td')).map(c => c.textContent.trim()))
       .filter(r => r.length);
   }
-  function normalizeRows(rows) { return rows.map(r => r.length===25 ? ['','', ...r] : r); }
+  function normalizeRows(rows) { 
+    if (!rows.length) return rows;
+    const maxLen = Math.max(...rows.map(r => r.length));
+    // Dòng phụ (sub-schedule) luôn thiếu 2 cột so với dòng chính do rowspan
+    return rows.map(r => r.length <= maxLen - 2 ? ['','', ...r] : r); 
+  }
   function toStructured(rows, code, name) {
     const out=[]; let prev='';
     for (const r of rows) {
