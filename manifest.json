@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CTU Timetable Exporter",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Công cụ xuất thời khóa biểu từ hệ thống ĐKMH CTU",
   "author": "Huaniverse (Nguyen Le Huu Huan)",
   "homepage_url": "https://huaniverse.github.io/CTU-Timetable/",

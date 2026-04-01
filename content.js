@@ -711,7 +711,7 @@
     $('c5-dl').addEventListener('click', handleDownload);
     $('c5-tkb').addEventListener('click', () => {
       if (!isDownloaded) handleDownload();
-      window.open('https://huaniverse.netlify.app/tools/tkb', '_blank', 'noopener');
+      window.open('https://huaniverse.github.io/CTU-Timetable', '_blank', 'noopener');
     });
     $('c5-reset').addEventListener('click', handleReset);
     $('c5-retry').addEventListener('click', handleReset);
